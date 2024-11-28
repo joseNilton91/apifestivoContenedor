@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+    environment {
+        REPO_URL = 'https://github.com/joseNilton91/apifestivoContenedor.git'
+        BRANCH = 'main'
+    }
+    stages {
+        stage('Clonar Repositorio') {
+            steps {
+                git branch: "${BRANCH}", credentialsId: '100', url: "${REPO_URL}"
+            }
+}
+        stage('Detener Contenedores Existentes') {
+            steps {
+                script {
+                    bat '''
+                    docker-compose down || echo "No hay contenedores para detener"
+                    '''
+                }
+            }
+        }
+        stage('Construir y Desplegar Contenedores') {
+            steps {
+                script {
+                    bat '''
+                    docker-compose up --build -d
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Despliegue exitoso.'
+        }
+        failure {
+            echo 'Despliegue fallido.'
+        }
+    }
+}
